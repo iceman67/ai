@@ -4,8 +4,10 @@ This example of Flower uses `scikit-learn`'s `LogisticRegression` model to train
 Running this example in itself is quite easy.
 
 We use two clients in a testing device environment:
+```
 -- Jetson nano
 -- Raspberry PI 4
+```
 
 ## Project Setup
 
