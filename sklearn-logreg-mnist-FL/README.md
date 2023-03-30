@@ -3,6 +3,10 @@
 This example of Flower uses `scikit-learn`'s `LogisticRegression` model to train a federated learning system. It will help you understand how to adapt Flower for use with `scikit-learn`.
 Running this example in itself is quite easy.
 
+We use two clients in a testing device environment:
+-- Jetson nano
+-- Raspberry PI 4
+
 ## Project Setup
 
 Start by cloning the example project. We prepared a single-line command that you can copy into your shell which will checkout the example for you:
@@ -21,20 +25,8 @@ This will create a new directory called `sklearn-logreg-mnist` containing the fo
 -- README.md
 ```
 
-Project dependencies (such as `scikit-learn` and `flwr`) are defined in `pyproject.toml`. We recommend [Poetry](https://python-poetry.org/docs/) to install those dependencies and manage your virtual environment ([Poetry installation](https://python-poetry.org/docs/#installation)), but feel free to use a different way of installing dependencies and managing virtual environments if you have other preferences.
+Project dependencies (such as `scikit-learn` and `flwr`) are defined in `pyproject.toml`. 
 
-```shell
-poetry install
-poetry shell
-```
-
-Poetry will install all your dependencies in a newly created virtual environment. To verify that everything works correctly you can run the following command:
-
-```shell
-poetry run python3 -c "import flwr"
-```
-
-If you don't see any errors you're good to go!
 
 # Run Federated Learning with scikit-learn and Flower
 
