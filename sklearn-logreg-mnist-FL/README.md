@@ -8,7 +8,16 @@ We use two clients in a testing device environment:
 -- Jetson nano
 -- Raspberry PI 4
 ```
+## Prerequisite 
 
+We first need to install Flower, scikit-learn and openml as follows:
+```
+
+$ pip install flwr
+$ pip install scikit-learn
+$ pip install openml
+
+```
 ## Project Setup
 
 Start by cloning the example project. We prepared a single-line command that you can copy into your shell which will checkout the example for you:
