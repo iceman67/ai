@@ -46,3 +46,9 @@ python client.py -cid B —server_address 192.168.1.116:8080
 ```
 where each client gives two arguments `cid` and `server_address` 
 You will see that Flower is starting a federated training. 
+
+You can use the following command to evaluate the models that built by client
+
+```shell
+ python evaluate_FL.py --batch 5 --cid B
+```
