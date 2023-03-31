@@ -50,8 +50,8 @@ python server.py
 Now you are ready to start the Flower clients which will participate in the learning. To do so simply open two more terminals and run the following command in each:
 
 ```shell
-python client.py —cid A —server_address 192.168.1.116:8080
-python client.py -cid B —server_address 192.168.1.116:8080
+python client.py --cid A --server_address 192.168.1.116:8080
+python client.py --cid B --server_address 192.168.1.116:8080
 ```
 where each client gives two arguments `cid` and `server_address` 
 You will see that Flower is starting a federated training. 
