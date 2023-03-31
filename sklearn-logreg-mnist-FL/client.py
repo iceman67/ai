@@ -8,6 +8,7 @@ import pickle
 
 import argparse
 import utils
+import os
 
 DEFAULT_SERVER_ADDRESS = "[::]:8080"
 
@@ -23,6 +24,12 @@ if __name__ == "__main__":
         "--cid", type=str, required=True, help="Client CID (no default)")
      
     args = parser.parse_args()
+
+    cwd = os.getcwd()
+
+    if not os.path.exists(f"{cwd}/model"):
+        os.makedirs(f"{cwd}/model")
+
 
     # Load MNIST dataset from https://www.openml.org/d/554
     (X_train, y_train), (X_test, y_test) = utils.load_mnist()
