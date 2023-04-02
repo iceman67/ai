@@ -4,6 +4,8 @@ from sklearn.metrics import log_loss
 from sklearn.linear_model import LogisticRegression
 from typing import Dict
 
+import argparse
+
 
 def fit_round(server_round: int) -> Dict:
     """Send round number to client."""
@@ -30,14 +32,38 @@ def get_evaluate_fn(model: LogisticRegression):
 
 
 # Start Flower server for five rounds of federated learning
+DEFAULT_STRATEGY= "FedAvg"
 if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description="Flower")
+    parser.add_argument(
+        "--strategy",
+        type=str,
+        default=DEFAULT_STRATEGY,
+        help=f"strategy (default: {DEFAULT_STRATEGY})",
+    )
+    args = parser.parse_args()
+
+
     model = LogisticRegression()
     utils.set_initial_params(model)
-    strategy = fl.server.strategy.FedAvg(
-        min_available_clients=2,
-        evaluate_fn=get_evaluate_fn(model),
-        on_fit_config_fn=fit_round,
+
+    if args.strategy == "FedAvg":
+        strategy = fl.server.strategy.FedAvg(
+            min_available_clients=2,
+            evaluate_fn=get_evaluate_fn(model),
+            on_fit_config_fn=fit_round,
+        )
+    elif args.strategy == "FedAdagrad":
+        strategy = fl.server.strategy.FedAdagrad(
+            fraction_fit=0.3,
+            fraction_evaluate=0.3,
+            min_available_clients=2,
+            evaluate_fn=get_evaluate_fn(model),
+            on_fit_config_fn=fit_round,
+            initial_parameters=fl.common.ndarrays_to_parameters(
+            utils.get_model_parameters(model)),
     )
+        
     fl.server.start_server(
         server_address="0.0.0.0:8080",
         strategy=strategy,

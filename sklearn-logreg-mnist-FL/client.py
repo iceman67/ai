@@ -9,6 +9,8 @@ import pickle
 import argparse
 import utils
 import os
+import timeit
+import csv
 
 DEFAULT_SERVER_ADDRESS = "[::]:8080"
 
@@ -50,21 +52,36 @@ if __name__ == "__main__":
 
     # Define Flower client
     class MnistClient(fl.client.NumPyClient):
+
+        def __init__(self, cid: str):
+            self.cid = cid
+            fid = open(f"{cwd}/{cid}-report.csv", 'w', newline="")
+            self.writer = csv.writer(fid) 
+            header = ['cid', 'server_round', 'elapsed']
+            self.writer.writerow(header)
+
         def get_parameters(self, config):  # type: ignore
             param = utils.get_model_parameters(model)
             print (param[1])
             return utils.get_model_parameters(model)
 
         def fit(self, parameters, config):  # type: ignore
+
+            
             utils.set_model_params(model, parameters)
             
+            fit_begin = timeit.default_timer()
+
             # Ignore convergence failure due to low local epochs
             with warnings.catch_warnings():
                 warnings.simplefilter("ignore")
                 model.fit(X_train, y_train)
+
+            fit_duration = timeit.default_timer() - fit_begin
             pickle.dump(model, open(f"model/client_{args.cid}-{config['server_round']}-minist.pkl",'wb'))
 
-            print(f"Training finished for round {config['server_round']}")
+            print(f"Training finished for round {config['server_round']}, fitting time {fit_duration}")
+            self.writer.writerow([self.cid,config['server_round'], fit_duration])
             return utils.get_model_parameters(model), len(X_train), {}
 
         def evaluate(self, parameters, config):  # type: ignore
@@ -79,4 +96,4 @@ if __name__ == "__main__":
     print(f'Starting client {args.cid}')
     print(f'server address : {args.server_address}')
     
-    fl.client.start_numpy_client(server_address=args.server_address, client=MnistClient())
+    fl.client.start_numpy_client(server_address=args.server_address, client=MnistClient(args.cid))
