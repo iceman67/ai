@@ -46,10 +46,10 @@ if __name__ == "__main__":
         max_iter=1,  # local epoch
         warm_start=True,  # prevent refreshing weights when fitting
     )
-   
+    
     # Setting initial parameters, akin to model.compile for keras models
     utils.set_initial_params(model)
-
+    
     # Define Flower client
     class MnistClient(fl.client.NumPyClient):
 
@@ -62,9 +62,19 @@ if __name__ == "__main__":
 
         def get_parameters(self, config):  # type: ignore
             param = utils.get_model_parameters(model)
+            print (f'keys = {model.state_dict().keys()}')
             print (param[1])
             return utils.get_model_parameters(model)
+        
+        # NA
+        def model_keys(self, model):
+            print (model.state_dict().keys())
+            #params_dict = zip(model.state_dict().keys(), parameters)
+            
 
+        # set the local model weights
+        # train the local model
+        # receive the updated local model weights
         def fit(self, parameters, config):  # type: ignore
 
             if config['server_round'] == None:
@@ -73,7 +83,6 @@ if __name__ == "__main__":
                 server_round = config['server_round']
 
             utils.set_model_params(model, parameters)
-            
             fit_begin = timeit.default_timer()
 
             # Ignore convergence failure due to low local epochs
@@ -87,10 +96,19 @@ if __name__ == "__main__":
             print(f"Training finished for round {config['server_round']}, fitting time {fit_duration}")
             self.writer.writerow([self.cid,config['server_round'], fit_duration])
             return utils.get_model_parameters(model), len(X_train), {}
-
+        
+        # test the local model
         def evaluate(self, parameters, config):  # type: ignore
             utils.set_model_params(model, parameters)
+            param = utils.get_model_parameters(model)
             
+            '''
+            print (model.get_params().keys())
+            params_dict = zip(model.get_params().keys(), parameters)
+            for k, v in params_dict:
+                print (k, v)
+            '''
+           
             loss = log_loss(y_test, model.predict_proba(X_test))
             print (f'loss = {loss}')
             accuracy = model.score(X_test, y_test)
