@@ -2,10 +2,9 @@ import flwr as fl
 import utils
 from sklearn.metrics import log_loss
 from sklearn.linear_model import LogisticRegression
-from typing import Dict
+from typing import Dict, Callable
 
 import argparse
-
 
 def fit_round(server_round: int) -> Dict:
     """Send round number to client."""
@@ -23,6 +22,20 @@ def fit_config(server_round: int):
     }
     return config
 
+# on_fit_config_fn can be used to pass arbitrary configuration values 
+# from server to client, and potentially change these values each round
+def get_on_fit_config_fn() -> Callable[[int], Dict[str, str]]:
+    """Return a function which returns training configurations."""
+
+    def fit_config(server_round: int) -> Dict[str, str]:
+        """Return a configuration with static batch size and (local) epochs."""
+        config = {
+            "learning_rate": str(0.001),
+            "batch_size": str(32),
+        }
+        return config
+
+    return fit_config
 
 def get_evaluate_fn(model: LogisticRegression):
     """Return an evaluation function for server-side evaluation."""
@@ -42,20 +55,10 @@ def get_evaluate_fn(model: LogisticRegression):
 
     return evaluate
 
-
 # Start Flower server for five rounds of federated learning
 DEFAULT_STRATEGY= "FedAvg"
-if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Flower")
-    parser.add_argument(
-        "--strategy",
-        type=str,
-        default=DEFAULT_STRATEGY,
-        help=f"strategy (default: {DEFAULT_STRATEGY})",
-    )
-    args = parser.parse_args()
-
-
+def main(args) -> None:
+    # The logistic regression model is defined and initialized with utils.set_initial_params()
     model = LogisticRegression()
     utils.set_initial_params(model)
 
@@ -90,10 +93,38 @@ if __name__ == "__main__":
             initial_parameters=fl.common.ndarrays_to_parameters(
             utils.get_model_parameters(model)),
         )
+    else:
+        args.strategy = "Not defined"
+        strategy = fl.server.strategy.FedAvg(
+            min_available_clients=2,
+            evaluate_fn=get_evaluate_fn(model),
+            on_fit_config_fn=get_on_fit_config_fn()
+        )
+        
+
     print (f'{args.strategy}')
     
     fl.server.start_server(
         server_address="0.0.0.0:8080",
         strategy=strategy,
-        config=fl.server.ServerConfig(num_rounds=20),
+        config=fl.server.ServerConfig(args.num_rounds),
     )
+
+
+
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description="Flower")
+    parser.add_argument(
+        "--strategy",
+        type=str,
+        default=DEFAULT_STRATEGY,
+        help=f"strategy (default: {DEFAULT_STRATEGY})",
+    )
+    parser.add_argument("--num-rounds", default=1, type=int)
+    parser.add_argument("--num-clients", default=2, type=int)
+    args = parser.parse_args()
+    main(args)
+
+
+    
