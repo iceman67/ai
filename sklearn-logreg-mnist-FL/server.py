@@ -11,6 +11,18 @@ def fit_round(server_round: int) -> Dict:
     """Send round number to client."""
     return {"server_round": server_round}
 
+def fit_config(server_round: int):
+    """Return training configuration dict for each round.
+
+    Perform two rounds of training with one local epoch, increase to two local
+    epochs afterwards.
+    """
+    config = {
+        "server_round": server_round,  # The current round of federated learning
+        "local_epochs": 1 if server_round < 2 else 2,  #
+    }
+    return config
+
 
 def get_evaluate_fn(model: LogisticRegression):
     """Return an evaluation function for server-side evaluation."""
@@ -47,6 +59,7 @@ if __name__ == "__main__":
     model = LogisticRegression()
     utils.set_initial_params(model)
 
+    strategy = None
     if args.strategy == "FedAvg":
         strategy = fl.server.strategy.FedAvg(
             min_available_clients=2,
@@ -59,11 +72,26 @@ if __name__ == "__main__":
             fraction_evaluate=0.3,
             min_available_clients=2,
             evaluate_fn=get_evaluate_fn(model),
-            on_fit_config_fn=fit_round,
+            #on_fit_config_fn=fit_round,
+            on_fit_config_fn=fit_config,
             initial_parameters=fl.common.ndarrays_to_parameters(
             utils.get_model_parameters(model)),
-    )
-        
+        )
+    elif args.strategy == "FedAdam":
+        strategy = fl.server.strategy.FedAdam(
+            fraction_fit=0.3,
+            fraction_evaluate=0.3,
+            min_fit_clients=2,
+            min_evaluate_clients=2,
+            min_available_clients=2,
+            evaluate_fn=get_evaluate_fn(model),
+            on_fit_config_fn=fit_config,
+            accept_failures=0,
+            initial_parameters=fl.common.ndarrays_to_parameters(
+            utils.get_model_parameters(model)),
+        )
+    print (f'{args.strategy}')
+    
     fl.server.start_server(
         server_address="0.0.0.0:8080",
         strategy=strategy,

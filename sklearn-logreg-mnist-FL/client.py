@@ -67,7 +67,11 @@ if __name__ == "__main__":
 
         def fit(self, parameters, config):  # type: ignore
 
-            
+            if config['server_round'] == None:
+                server_round = 'None'
+            else:
+                server_round = config['server_round']
+
             utils.set_model_params(model, parameters)
             
             fit_begin = timeit.default_timer()
@@ -78,7 +82,7 @@ if __name__ == "__main__":
                 model.fit(X_train, y_train)
 
             fit_duration = timeit.default_timer() - fit_begin
-            pickle.dump(model, open(f"model/client_{args.cid}-{config['server_round']}-minist.pkl",'wb'))
+            pickle.dump(model, open(f"model/client_{args.cid}-{server_round}-minist.pkl",'wb'))
 
             print(f"Training finished for round {config['server_round']}, fitting time {fit_duration}")
             self.writer.writerow([self.cid,config['server_round'], fit_duration])
