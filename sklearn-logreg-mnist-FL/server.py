@@ -93,6 +93,19 @@ def main(args) -> None:
             initial_parameters=fl.common.ndarrays_to_parameters(
             utils.get_model_parameters(model)),
         )
+    elif args.strategy == "FedYogi":
+        strategy = fl.server.strategy.FedYogi(
+            fraction_fit=0.3,
+            fraction_evaluate=0.3,
+            min_fit_clients=2,
+            min_evaluate_clients=2,
+            min_available_clients=2,
+            evaluate_fn=get_evaluate_fn(model),
+            on_fit_config_fn=fit_config,
+            accept_failures=0,
+            initial_parameters=fl.common.ndarrays_to_parameters(
+            utils.get_model_parameters(model)),
+        )
     else:
         args.strategy = "Not defined"
         strategy = fl.server.strategy.FedAvg(
@@ -109,9 +122,6 @@ def main(args) -> None:
         strategy=strategy,
         config=fl.server.ServerConfig(args.num_rounds),
     )
-
-
-
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Flower")
