@@ -5,6 +5,9 @@ from sklearn.linear_model import LogisticRegression
 from typing import Dict, Callable
 
 import argparse
+import pickle
+import os
+import numpy as np
 
 def fit_round(server_round: int) -> Dict:
     """Send round number to client."""
@@ -46,8 +49,18 @@ def get_evaluate_fn(model: LogisticRegression):
     # The `evaluate` function will be called after every round
     def evaluate(server_round, parameters: fl.common.NDArrays, config):
         # Update model with the latest parameters
+
+        
         utils.set_model_params(model, parameters)
-        print (f'parm ={parameters[1]}')
+
+        # checkpoint the global parameters
+        file_global_param = "./param/global_param.pkl"
+        if os.path.isfile(file_global_param):
+            os.remove(file_global_param)
+        pickle.dump(parameters, open(file_global_param,'wb'))
+
+
+        #print (f'parm ={parameters[1]}')
         loss = log_loss(y_test, model.predict_proba(X_test))
         print (f'loss = {loss}')
         accuracy = model.score(X_test, y_test)
@@ -59,8 +72,31 @@ def get_evaluate_fn(model: LogisticRegression):
 DEFAULT_STRATEGY= "FedAvg"
 def main(args) -> None:
     # The logistic regression model is defined and initialized with utils.set_initial_params()
+   
+   
+    cwd = os.getcwd()
+    if not os.path.exists(f"{cwd}/param"):
+        os.makedirs(f"{cwd}/param")
+   
     model = LogisticRegression()
-    utils.set_initial_params(model)
+
+    #parameters: fl.common.NDArrays
+
+    fname = f'./param/global_param.pkl'
+    last_param = None
+    try:
+        with open(fname, 'rb') as f:
+            last_param = pickle.load(f)
+        if last_param is not None:
+            #last_param = np.array([0,0])
+            #utils.set_model_params(model, last_param)
+            utils.set_initial_params(model, last_param )
+        
+            
+    except FileNotFoundError:
+        utils.set_initial_params(model,param=None )
+
+    
 
     strategy = None
     if args.strategy == "FedAvg":

@@ -33,7 +33,7 @@ def set_model_params(
     return model
 
 
-def set_initial_params(model: LogisticRegression):
+def set_initial_params(model: LogisticRegression, param):
     """Sets initial parameters as zeros Required since model params are
     uninitialized until model.fit is called.
 
@@ -44,10 +44,20 @@ def set_initial_params(model: LogisticRegression):
     n_classes = 10  # MNIST has 10 classes
     n_features = 784  # Number of features in dataset
     model.classes_ = np.array([i for i in range(10)])
+    
+    if param is None:
+       model.coef_ = np.zeros((n_classes, n_features))
+    else:
+       model.coef_ = param[0]
 
-    model.coef_ = np.zeros((n_classes, n_features))
+    print (f"init coef_ = {model.coef_}")
+
     if model.fit_intercept:
-        model.intercept_ = np.zeros((n_classes,))
+        if param is None:
+            model.intercept_ = np.zeros((n_classes,))
+        else:
+           model.intercept_ = param[1] 
+        print (f"init intercept_ = {model.intercept_}")
 
 
 def load_mnist() -> Dataset:

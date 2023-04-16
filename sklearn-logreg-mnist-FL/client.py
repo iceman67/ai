@@ -48,7 +48,7 @@ if __name__ == "__main__":
     )
     
     # Setting initial parameters, akin to model.compile for keras models
-    utils.set_initial_params(model)
+    utils.set_initial_params(model, param=None)
     
     # Define Flower client
     class MnistClient(fl.client.NumPyClient):
