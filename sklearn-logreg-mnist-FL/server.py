@@ -90,20 +90,19 @@ def main(args) -> None:
         if last_param is not None:
             #last_param = np.array([0,0])
             #utils.set_model_params(model, last_param)
-            utils.set_initial_params(model, last_param )
-        
-            
+            utils.set_initial_params(model, last_param )  
     except FileNotFoundError:
         utils.set_initial_params(model,param=None )
-
-    
 
     strategy = None
     if args.strategy == "FedAvg":
         strategy = fl.server.strategy.FedAvg(
             min_available_clients=2,
             evaluate_fn=get_evaluate_fn(model),
-            on_fit_config_fn=fit_round,
+            #on_fit_config_fn=fit_round,
+            on_fit_config_fn=fit_config,
+            initial_parameters=fl.common.ndarrays_to_parameters(
+            utils.get_model_parameters(model)),
         )
     elif args.strategy == "FedAdagrad":
         strategy = fl.server.strategy.FedAdagrad(
